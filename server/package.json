@@ -1,11 +1,23 @@
 {
-  "name": "backend",
+  "name": "server",
   "version": "1.0.0",
+  "description": "Package for server side dependencies",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
   },
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Western-Webtech/se3316-lab3-Omar1Ramadan.git"
+  },
+  "author": "Omar Ramadan",
   "license": "ISC",
-  "description": ""
+  "bugs": {
+    "url": "https://github.com/Western-Webtech/se3316-lab3-Omar1Ramadan/issues"
+  },
+  "homepage": "https://github.com/Western-Webtech/se3316-lab3-Omar1Ramadan#readme",
+  "dependencies": {
+    "express": "^4.21.1"
+  }
 }
