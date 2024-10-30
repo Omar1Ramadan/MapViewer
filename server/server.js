@@ -85,6 +85,34 @@ router.get('/:id/location', (req, res) => {
     }
 });
 
+router.get('/search', (req, res) => {
+    const { field, pattern, n } = req.query; // Extract query parameters
+    const limit = n ? parseInt(n, 10) : null; // Convert n to an integer or default to 5
+
+    //Define a schema to validate the query parameters
+    let schema = joi.object({
+        field: joi.string().required(),
+        pattern: joi.string().required(),
+        n: joi.number().integer().min(1).optional()
+    })
+
+    // Validating the schema
+    const validation = schema.validate({ field, pattern, n : limit})
+    if (validation.errror){
+        return res.status(400).send({ error: validation.error.details[0].message })
+    }
+
+    //Filter information based on field and pattern
+    const filter = result.filter(destination => {
+        const  fieldValue = destination[field]
+})
+
+
+
+});
+
+
+app.get(':id/')
 //Define a router for the API endpoints
 app.use('/api/destinations', router);
 
