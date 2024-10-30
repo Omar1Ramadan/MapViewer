@@ -18,6 +18,9 @@
   },
   "homepage": "https://github.com/Western-Webtech/se3316-lab3-Omar1Ramadan#readme",
   "dependencies": {
-    "express": "^4.21.1"
+    "csv-parser": "^3.0.0",
+    "express": "^4.21.1",
+    "joi": "^17.13.3",
+    "nodemon": "^3.1.7"
   }
 }

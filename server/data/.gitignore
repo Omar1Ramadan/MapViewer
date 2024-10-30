@@ -1,4 +1,9 @@
 # Ignore everything in this directory
 *
+# Apple system files
+.DS_Store
 # Except this file
 !.gitignore
+# CSV files
+*.csv
+
