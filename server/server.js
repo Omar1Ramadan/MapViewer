@@ -1,4 +1,3 @@
-
 const express = require('express');
 const fs = require('fs');
 const app = express();
@@ -16,10 +15,13 @@ app.use((req, res, next) => {
     next();
 });
 
+// Add JSON parsing middleware
+app.use(express.json());
+
 
 //variables for global
 const result = [];
-const lists = [];
+const lists = {};
 
 fs.createReadStream("./data/europe-destinations.csv")
     .pipe(csvparser())
@@ -30,8 +32,49 @@ fs.createReadStream("./data/europe-destinations.csv")
         console.log(`Successfully read ${result.length} destinations`);
   });
 
+// any route with the list parameters
 
-router.route
+// Route for creating and retrieving lists
+router.route('/list')
+    .post((req, res) => {
+        const { listName } = req.body;
+
+        // Schema validation
+        const schema = joi.object({
+            listName: joi.string().required()
+        });
+
+        const { error } = schema.validate({ listName });
+        if (error) {
+            return res.status(400).send({ error: error.details[0].message });
+        }
+
+        // Check if list already exists
+        if (lists[listName]) {
+            return res.status(400).send({ error: `List '${listName}' already exists` });
+        }
+
+        // Create the list
+        lists[listName] = [];
+        res.status(201).send({ message: `List '${listName}' created successfully` });
+    })
+    .get((req, res) => {
+        res.send(lists);
+    });
+
+// Route to retrieve a specific list by name
+router.get('/list/:listName', (req, res) => {
+    const { listName } = req.params;
+
+    // Check if list exists
+    if (!lists[listName]) {
+        return res.status(404).send({ error: `List '${listName}' not found` });
+    }
+
+    // Return the list
+    res.send({ listName, destinations: lists[listName] });
+});
+
 
 router.get('/search', (req, res) => {
     const { field, pattern, n } = req.query; // Extract query parameters
@@ -63,14 +106,14 @@ router.get('/search', (req, res) => {
 });
 // had to put the code above /:id otherwise it would think it would be reading the country as an id
 // Define the API endpoint to retrieve data by country of the destination
-router.get('/countries', (req,res) => {
+router.get('/destinations/countries', (req,res) => {
     // Extract unique country names from the result array
     const countries = [...new Set(result.map(destination => destination.Country))];
     res.send(countries);
 });
 
 // Define the API endpoint to retrieve data by location of the destination
-router.get('/:id/location', (req, res) => {
+router.get('/destinations/:id/location', (req, res) => {
     const id = parseInt(req.params.id, 10); // Convert id to an integer
     
 
@@ -94,7 +137,7 @@ router.get('/:id/location', (req, res) => {
 });
 
 // Define the API endpoint to retrieve data by row index (Destination ID)
-router.get('/:id', (req, res) => {
+router.get('/destinations/:id', (req, res) => {
     const id = parseInt(req.params.id, 10); // Convert id to an integer
     
     // Define a schema to validate the id parameter
@@ -116,7 +159,7 @@ router.get('/:id', (req, res) => {
 });
 
 // Define the API endpoint to retrieve data by location of the destination
-router.get('/:id/location', (req, res) => {
+router.get('/destinations/:id/location', (req, res) => {
     const id = parseInt(req.params.id, 10); // Convert id to an integer
     
 
@@ -140,12 +183,8 @@ router.get('/:id/location', (req, res) => {
 });
 
 
-
-
-app.get(':id/')
 //Define a router for the API endpoints
-app.use('/api/destinations', router);
-
+app.use('/api', router);
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}`)
