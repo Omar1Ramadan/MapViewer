@@ -5,6 +5,7 @@ const port = 3000;
 const csvparser = require('csv-parser');
 const router = express.Router();
 const joi = require('joi');
+const Joi = require('joi');
 
 //Setup serving front-end code
 app.use('/', express.static('../client'));
@@ -33,50 +34,72 @@ fs.createReadStream("./data/europe-destinations.csv")
   });
 
 // any route with the list parameters
-
 // Route for creating and retrieving lists
 router.route('/list')
     .post((req, res) => {
-        const { listName } = req.body;
-
-        // Schema validation
-        const schema = joi.object({
-            listName: joi.string().required()
+        // Define schema with corrected usage of `messages()`
+        const schema = Joi.object({
+            listName: Joi.string().required().messages({
+                "string.empty": "listName is required",
+                "any.required": "listName is required"
+            }),
+            destinationIDs: Joi.array().items(Joi.string()).optional()
         });
 
-        const { error } = schema.validate({ listName });
+        // Validate the request body against the schema
+        const { error, value } = schema.validate(req.body);
+
         if (error) {
+            // Send a 400 Bad Request if validation fails
             return res.status(400).send({ error: error.details[0].message });
         }
 
+        const { listName, destinationIDs } = value;
+
         // Check if list already exists
-        if (lists[listName]) {
-            return res.status(400).send({ error: `List '${listName}' already exists` });
+        if (!lists[listName]) {
+            // Create a new list if it doesn't exist
+            lists[listName] = destinationIDs || [];
+            return res.status(201).send({ message: `List '${listName}' created successfully`, list: lists[listName] });
         }
 
-        // Create the list
-        lists[listName] = [];
-        res.status(201).send({ message: `List '${listName}' created successfully` });
+        // Update the existing list with new destination IDs if provided
+        lists[listName] = destinationIDs || lists[listName];
+        return res.status(200).send({ message: `List '${listName}' updated successfully`, list: lists[listName] });
     })
+
     .get((req, res) => {
         res.send(lists);
     });
 
 // Route to retrieve a specific list by name
-router.get('/list/:listName', (req, res) => {
-    const { listName } = req.params;
+router.route('/list/:listName') 
+    // Get the listname params
+    .get((req, res) => {
+        const { listName } = req.params;
 
-    // Check if list exists
-    if (!lists[listName]) {
-        return res.status(404).send({ error: `List '${listName}' not found` });
-    }
+        // Check if the list exists
+        if (!lists[listName]) {
+            return res.status(404).send({ error: `List '${listName}' not found` });
+        }
 
-    // Return the list
-    res.send({ listName, destinations: lists[listName] });
-});
+        // Return the list
+        res.send({ listName, destinations: lists[listName] });
+    }) // delete the listname params
+    .delete((req,res) =>{
+        const { listName } = req.params;
+
+        // Check if the list exists 
+        if(!lists[listName])
+            return res.status(404).send( {error: `List ${listName} not found`})
+
+        //Delete the list and confirm deletion
+        delete lists[listName]
+        res.send({ message: `List ${listName} deleted successfully`})
+    })
 
 
-router.get('/search', (req, res) => {
+router.get('/destinations/search', (req, res) => {
     const { field, pattern, n } = req.query; // Extract query parameters
     const limit = n ? parseInt(n, 10) : null; // Convert n to an integer or default to null
 
