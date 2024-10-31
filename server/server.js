@@ -139,7 +139,7 @@ router.get('/destinations/countries', (req,res) => {
 router.get('/destinations/:id/location', (req, res) => {
     const id = parseInt(req.params.id, 10); // Convert id to an integer
     
-
+    // Defining the schema
     let schema = joi.object({
         location: joi.string().min(30).required()
     });
@@ -170,41 +170,14 @@ router.get('/destinations/:id', (req, res) => {
     // Validate the id parameter
     const validate = schema.validate({ id });
 
-    console.log(validate);
     // Check if the id is within the valid range of the result array
     if ((id >= 0 && id < result.length) && !validate.error) {
         const destination = result[id]; // Access the destination by index
-        console.log(destination);
         res.send(destination);
     } else {
         res.status(404).send(`Destination not found ${validate.error}`);
     }
 });
-
-// Define the API endpoint to retrieve data by location of the destination
-router.get('/destinations/:id/location', (req, res) => {
-    const id = parseInt(req.params.id, 10); // Convert id to an integer
-    
-
-    let schema = joi.object({
-        location: joi.string().min(30).required()
-    });
-
-    const validate = schema.validate({ id });
-
-    // Use the previous function as a prerequisite to get the destination data
-    if (id >= 0 && id < result.length && validate.error) {
-        const { Latitude, Longitude } = result[id]; // Destructure latitude and longitude
-        if (Latitude && Longitude) {
-            res.send({ Latitude, Longitude });
-        } else {
-            res.status(404).send({ error: "Coordinates not found for this destination" });
-        }
-    } else {
-        res.status(404).send(`Destination not found ${validate.error}`);
-    }
-});
-
 
 //Define a router for the API endpoints
 app.use('/api', router);
