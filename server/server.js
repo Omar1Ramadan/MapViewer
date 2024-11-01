@@ -204,13 +204,7 @@ router.get('/destinations/search', (req, res) => {
     if (validation.errror){
         return res.status(400).send({ error: validation.error.details[0].message })
     }
-
-    //Filter information based on field and pattern
-    const filter = result.filter(destination => {
-        const  fieldValue = destination[field]
-        return fieldValue && fieldValue.toLowerCase().includes(pattern.toLowerCase());
-    });
-
+    
     // Filter information based on field and pattern and map to get destinationID (index)
     const filteredIDs = result
         .map((destination, index) => ({ ...destination, destinationID: index })) // Add destinationID as index
