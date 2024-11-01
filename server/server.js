@@ -30,14 +30,23 @@ path = './data/europe-destinations.csv'
 function loadCSVData() {
     result = []; // Clear existing data
     fs.createReadStream(path)
-        .pipe(csvparser())
-        .on("data", (data) => result.push(data))
-        .on("end", () => {
-            console.log(`Successfully loaded ${result.length} destinations.`);
-        })
-        .on("error", (err) => {
-            console.error("Error reading CSV file:", err);
-        });
+    .pipe(csvparser())
+    .on('data', (row) => {
+    // Normalize the headers by trimming whitespace and removing any non-printable characters
+    const normalized = {};
+
+    for (const [key, value] of Object.entries(row)) {
+      const normalizedKey = key.trim().replace(/^\uFEFF/, ""); // Trim and remove BOM or other invisible characters
+      normalized[normalizedKey] = value;
+    }
+    result.push(normalized);
+  })
+  .on('end', () => {
+    console.log('CSV file successfully processed');
+  })
+  .on('error', (error) => {
+    console.error('Error loading CSV file:', error);
+  });
 }
 
 // Load data on server start
@@ -202,9 +211,18 @@ router.get('/destinations/search', (req, res) => {
         return fieldValue && fieldValue.toLowerCase().includes(pattern.toLowerCase());
     });
 
-    // Return the first n matches or all matches if n is not provided
-    const limitedFilter = limit ? filter.slice(0, limit) : filter;
-    res.send(limitedFilter);
+    // Filter information based on field and pattern and map to get destinationID (index)
+    const filteredIDs = result
+        .map((destination, index) => ({ ...destination, destinationID: index })) // Add destinationID as index
+        .filter(destination => {
+            const fieldValue = destination[field];
+            return fieldValue && fieldValue.toLowerCase().includes(pattern.toLowerCase());
+        })
+        .map(destination => destination.destinationID); // Extract only the destinationID
+
+    // Limit the results if 'n' is provided, otherwise return all matches
+    const limitedIDs = limit ? filteredIDs.slice(0, limit) : filteredIDs;
+    res.send(limitedIDs);
 
 });
 // had to put the code above /:id otherwise it would think it would be reading the country as an id
