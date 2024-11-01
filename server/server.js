@@ -33,6 +33,68 @@ fs.createReadStream("./data/europe-destinations.csv")
         console.log(`Successfully read ${result.length} destinations`);
   });
 
+  router.route('/list/:listName/details')
+  .get((req, res) => {
+    const { listName } = req.params;
+
+    // Schema to validate `listName` and `destinationIDs`
+    const schema = joi.object({
+      listName: joi.string().required().messages({
+        "any.required": "List name is required",
+        "string.empty": "List name cannot be empty"
+      })
+    });
+
+    // Validate `listName`
+    const { error } = schema.validate({ listName });
+    if (error) {
+      return res.status(400).json({ error: error.details[0].message });
+    }
+
+    // Check if the list exists in `lists`
+    if (!lists[listName]) {
+      return res.status(404).json({ error: `List '${listName}' not found` });
+    }
+
+    // Retrieve and validate destination IDs in the list
+    const destinationIDs = lists[listName];
+    console.log("Destination IDs in the list:", destinationIDs);
+
+    if (!Array.isArray(destinationIDs) || destinationIDs.length === 0) {
+      return res.status(404).json({ error: `No destinations found in list '${listName}'` });
+    }
+
+    // Fetch details for each destination based on validated indices
+    const destinationDetails = destinationIDs.map(index => {
+      // Validate that the index is within the bounds of `result`
+      if (index >= 0 && index < result.length) {
+        const destination = result[index];
+        return {
+          name: destination.Destination,
+          region: destination.Region,
+          country: destination.Country,
+          coordinates: {
+            latitude: destination.Latitude,
+            longitude: destination.Longitude
+          },
+          currency: destination.Currency,
+          language: destination.Language
+        };
+      } else {
+        console.log(`Index ${index} is out of bounds`);
+        return null;
+      }
+    }).filter(Boolean); // Filter out any nulls if indexes were out of bounds
+
+    // Check if destination details were found
+    if (destinationDetails.length === 0) {
+      return res.status(404).json({ error: `No valid destinations found in the result data` });
+    }
+
+    // Send the detailed list as a response
+    return res.json({ listName, destinationDetails });
+  });
+
 // any route with the list parameters
 // Route for creating and retrieving lists
 router.route('/list')
@@ -43,7 +105,7 @@ router.route('/list')
                 "string.empty": "listName is required",
                 "any.required": "listName is required"
             }),
-            destinationIDs: Joi.array().items(Joi.string()).optional()
+            destinationIDs: Joi.array().items(Joi.number().integer().required())
         });
 
         // Validate the request body against the schema
