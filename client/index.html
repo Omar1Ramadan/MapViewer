@@ -4,10 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SE 3316 - Lab 3</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""></script>
     <script defer src="lab3.js"></script>
     <link rel="stylesheet" href="style.css"
   </head>
   <body>
-    Hello there jellybean
+    <h1>European Travel Destinations</h1>
+    <div id ="map" ></div>
+
+
+    <section id="search-section">
+      <h2>Search Destinations</h2>
+      <label for="search-field">Search by:</label>
+      <select id="search-field">
+          <option value="name">Name</option>
+          <option value="region">Region</option>
+          <option value="country">Country</option>
+      </select>
+      <input type="text" id="search-query" placeholder="Enter search term">
+      <button onclick="searchDestinations()">Search</button>
+  </section>
+
+  <section id="results-section">
+    <h2>Search Results</h2>
+    <div class="results" id="results"></div>
+    <div id="pagination-controls">
+        <label for="results-per-page">Results per page:</label>
+        <select id="results-per-page" onchange="updateResultsPerPage()">
+            <option value="5">5</option>
+            <option value="10">10</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+        </select>
+        <button onclick="previousPage()">Previous</button>
+        <button onclick="nextPage()">Next</button>
+    </div>
+</section>
+
   </body>
 </html>
