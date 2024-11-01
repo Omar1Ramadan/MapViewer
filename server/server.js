@@ -21,17 +21,35 @@ app.use(express.json());
 
 
 //variables for global
-const result = [];
+let result = [];
 const lists = {};
+//a
 
-fs.createReadStream("./data/europe-destinations.csv")
-    .pipe(csvparser())
-    .on("data", (data) => {
-        result.push(data);
-    })
-    .on("end", () => {
-        console.log(`Successfully read ${result.length} destinations`);
-  });
+path = './data/europe-destinations.csv'
+// Function to load and parse CSV data into the `result` array
+function loadCSVData() {
+    result = []; // Clear existing data
+    fs.createReadStream(path)
+        .pipe(csvparser())
+        .on("data", (data) => result.push(data))
+        .on("end", () => {
+            console.log(`Successfully loaded ${result.length} destinations.`);
+        })
+        .on("error", (err) => {
+            console.error("Error reading CSV file:", err);
+        });
+}
+
+// Load data on server start
+loadCSVData();
+
+// Optional: Watch the CSV file for changes to automatically reload data
+fs.watchFile(path, (curr, prev) => {
+    if (curr.mtime !== prev.mtime) {
+        console.log("CSV file changed. Reloading data...");
+        loadCSVData();
+    }
+});
 
   router.route('/list/:listName/details')
   .get((req, res) => {
