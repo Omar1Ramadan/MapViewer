@@ -1,26 +1,26 @@
 // intitalizing the map
-document.addEventListener("DOMContentLoaded", () => {
-    const map = L.map("map").setView([51.505, -0.09], 4);
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19,
-    }).addTo(map);
-});
+const map = L.map("map").setView([51.505, -0.09], 4);
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+}).addTo(map);
 
 // constants for the limit of search
 let currentPage = 1;
-let resultsPerPage = 10;
+let resultsPerPage = 5;
 let searchResults = [];
 let favorites = {};
+let markersLayer;
 
 //The search function
 async function searchDestinations() {
     // defining the terms
     const field = document.getElementById('search-field').value;
     const query = document.getElementById('search-query').value;
-    const limit = resultsPerPage;
+    const resultsPerPageInput = parseInt(document.getElementById("results-per-page").value);
+    resultsPerPage = resultsPerPageInput || 5;
 
     // creating the fetch request to backend
-    const response = await fetch(`http://localhost:3000/api/destinations/search?field=${field}&pattern=${query}&n=${limit}`);
+    const response = await fetch(`/api/destinations/search?field=${field}&pattern=${query}&n=${limit}`);
     const data = await response.json();
     searchResults = data
     displayResults()
@@ -35,6 +35,12 @@ function displayResults() {
     const start = (currentPage - 1) * resultsPerPage;
     const end = start + resultsPerPage;
     const pageResults = searchResults.slice(start, end);
+
+     // Clear any previous markers
+     if (markersLayer) {
+        markersLayer.clearLayers();
+    }
+        markersLayer = L.layerGroup().addTo(map);
 
     pageResults.forEach((destination) => {
         // Create container for each result
@@ -69,6 +75,11 @@ function displayResults() {
         card.appendChild(addButton);
 
         resultsDiv.appendChild(card);
+
+         // Add marker to map for each destination
+         const marker = L.marker([destination.Latitude, destination.Longitude])
+         .bindPopup(`<b>${destination.Destination}</b><br>${destination.Region}, ${destination.Country}`);
+            markersLayer.addLayer(marker);
 
     });
 }
