@@ -1,5 +1,3 @@
-
-
 // intitalizing the map
 document.addEventListener("DOMContentLoaded", () => {
     const map = L.map("map").setView([51.505, -0.09], 4);
@@ -10,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // constants for the limit of search
 let currentPage = 1;
-let resultsPerPage = 5;
+let resultsPerPage = 10;
 let searchResults = [];
 let favorites = {};
 
@@ -22,13 +20,14 @@ async function searchDestinations() {
     const limit = resultsPerPage;
 
     // creating the fetch request to backend
-    const response = await fetch(`/api/destinations/search?field=${field}&pattern=${query}&n=${limit}`);
+    const response = await fetch(`http://localhost:3000/api/destinations/search?field=${field}&pattern=${query}&n=${limit}`);
     const data = await response.json();
     searchResults = data
     displayResults()
    
 }
 
+// Function to display results and map
 function displayResults() {
     const resultsDiv = document.getElementById("results");
     resultsDiv.textContent = ""; // Clear previous results
@@ -42,30 +41,26 @@ function displayResults() {
         const card = document.createElement("div");
         card.classList.add("result-card");
 
-        // Title
+        // Destination Title
         const title = document.createElement("h3");
-        title.textContent = destination.name;
+        title.textContent = destination.Destination;
         card.appendChild(title);
 
-        // Region
-        const region = document.createElement("p");
-        region.textContent = `Region: ${destination.region}`;
-        card.appendChild(region);
-
-        // Country
-        const country = document.createElement("p");
-        country.textContent = `Country: ${destination.country}`;
-        card.appendChild(country);
-
-        // Currency
-        const currency = document.createElement("p");
-        currency.textContent = `Currency: ${destination.currency}`;
-        card.appendChild(currency);
-
-        // Language
-        const language = document.createElement("p");
-        language.textContent = `Language: ${destination.language}`;
-        card.appendChild(language);
+        // Other Destination Details
+        addDetail(card, "Region", destination.Region);
+        addDetail(card, "Country", destination.Country);
+        addDetail(card, "Category", destination.Category);
+        addDetail(card, "Coordinates", `${destination.Latitude}, ${destination.Longitude}`);
+        addDetail(card, "Approximate Annual Tourists", destination["Approximate Annual Tourists"]);
+        addDetail(card, "Currency", destination.Currency);
+        addDetail(card, "Majority Religion", destination["Majority Religion"]);
+        addDetail(card, "Famous Foods", destination["Famous Foods"]);
+        addDetail(card, "Language", destination.Language);
+        addDetail(card, "Best Time to Visit", destination["Best Time to Visit"]);
+        addDetail(card, "Cost of Living", destination["Cost of Living"]);
+        addDetail(card, "Safety", destination.Safety);
+        addDetail(card, "Cultural Significance", destination["Cultural Significance"]);
+        addDetail(card, "Description", destination.Description);
 
         // Button to add to favorites
         const addButton = document.createElement("button");
@@ -75,13 +70,14 @@ function displayResults() {
 
         resultsDiv.appendChild(card);
 
-        // Add marker to map
-        L.marker([destination.coordinates.latitude, destination.coordinates.longitude])
-            .addTo(map)
-            .bindPopup(`<b>${destination.name}</b>`)
-            .openPopup();
     });
+}
 
+// Helper function to add a destination detail
+function addDetail(parent, label, value) {
+    const detail = document.createElement("p");
+    detail.textContent = `${label}: ${value}`;
+    parent.appendChild(detail);
 }
 
 function updateResultsPerPage() {

@@ -5,7 +5,6 @@ const port = 3000;
 const csvparser = require('csv-parser');
 const router = express.Router();
 const joi = require('joi');
-const Joi = require('joi');
 
 //Setup serving front-end code
 app.use('/', express.static('../client'));
@@ -19,11 +18,9 @@ app.use((req, res, next) => {
 // Add JSON parsing middleware
 app.use(express.json());
 
-
 //variables for global
 let result = [];
 const lists = {};
-//a
 
 path = './data/europe-destinations.csv'
 // Function to load and parse CSV data into the `result` array
@@ -52,7 +49,7 @@ function loadCSVData() {
 // Load data on server start
 loadCSVData();
 
-// Optional: Watch the CSV file for changes to automatically reload data
+//Watch the CSV file for changes to automatically reload data
 fs.watchFile(path, (curr, prev) => {
     if (curr.mtime !== prev.mtime) {
         console.log("CSV file changed. Reloading data...");
@@ -205,18 +202,15 @@ router.get('/destinations/search', (req, res) => {
         return res.status(400).send({ error: validation.error.details[0].message })
     }
     
-    // Filter information based on field and pattern and map to get destinationID (index)
-    const filteredIDs = result
-        .map((destination, index) => ({ ...destination, destinationID: index })) // Add destinationID as index
-        .filter(destination => {
-            const fieldValue = destination[field];
-            return fieldValue && fieldValue.toLowerCase().includes(pattern.toLowerCase());
-        })
-        .map(destination => destination.destinationID); // Extract only the destinationID
+    //Filter information based on field and pattern
+    const filter = result.filter(destination => {
+        const  fieldValue = destination[field]
+        return fieldValue && fieldValue.toLowerCase().includes(pattern.toLowerCase());
+    });
 
-    // Limit the results if 'n' is provided, otherwise return all matches
-    const limitedIDs = limit ? filteredIDs.slice(0, limit) : filteredIDs;
-    res.send(limitedIDs);
+    // Return the first n matches or all matches if n is not provided
+    const limitedFilter = limit ? filter.slice(0, limit) : filter;
+    res.send(limitedFilter);
 
 });
 // had to put the code above /:id otherwise it would think it would be reading the country as an id
