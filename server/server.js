@@ -268,6 +268,9 @@ router.get('/destinations/:id', (req, res) => {
 //Define a router for the API endpoints
 app.use('/api', router);
 
+app.use('/data', express.static(__dirname + '/data'));
+
+
 app.listen(port, () => {
     console.log(`Listening on port ${port}`)
 })

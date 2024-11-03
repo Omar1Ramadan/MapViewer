@@ -12,6 +12,55 @@ let countriesResults = [];
 let favorites = {};
 let markersLayer;
 
+// This object will store the destination name-to-ID mapping
+let destinationMapping = {};
+// Function to load and parse CSV
+async function loadDestinationMapping() {
+    try {
+        const response = await fetch('./data/europe-destinations.csv');
+        const csvText = await response.text();
+
+        Papa.parse(csvText, {
+            header: true,
+            skipEmptyLines: true,
+            complete: function(results) {
+                results.data.forEach((row, index) => {
+                    const name = row.Destination ? row.Destination.trim().toLowerCase() : null;
+
+                    if (name) {
+                        destinationMapping[name] = index; // Use index as the unique ID
+                    } else {
+                        console.error(`Error parsing row. Name is invalid for index: ${index}`);
+                    }
+                });
+                console.log("Loaded destination mapping:", destinationMapping); // Final log of the mapping
+            }
+        });
+    } catch (error) {
+        console.error("Error loading destinations:", error);
+    }
+}
+
+
+function convertDestinationsToIDs(destinationInput) {
+    const destinationNames = destinationInput.split(',').map(name => name.trim().toLowerCase());
+    const destinationIDs = destinationNames.map(name => {
+        if (!(name in destinationMapping)) {
+            console.error(`Destination not found in mapping: ${name}`);
+            return NaN;
+        }
+        return destinationMapping[name];
+    });
+
+    console.log("Converted destination IDs:", destinationIDs);
+    return destinationIDs;
+}
+
+// Call this function once when the page loads
+window.onload = async () => {
+    await loadDestinationMapping();
+};
+
 //The search function
 async function searchDestinations() {
     // defining the terms
@@ -45,41 +94,57 @@ async function retrieveConutries(){
 }
 
 //function to create or update lits
-async function createFavoriteList(){
-    // creating constants for favorite list
+async function createFavoriteList() {
+    // Getting input values
     const listName = document.getElementById('list-name').value.trim();
-    const destinationIDsInput = document.getElementById('destination-ids').value.trim();
-
-    // need to add some input validation HERE
-    if(!listName)
-        return alert("Please Input a valid name");
-
+    const destinationInput = document.getElementById('destination-ids').value.trim();
     
-    const destinationIDs = destinationIDsInput.split(',').map( id => id.trim()).filter(id => id);
+    // Converting destination names to IDs
+    const destinationIDsInput = convertDestinationsToIDs(destinationInput);
 
-    try{
+    // Log the input and check the type
+    console.log("Destination Input:", destinationInput);
+    console.log("Converted destination IDs:", destinationIDsInput);
+
+    // Check if convertDestinationsToIDs returned an array
+    let destinationIDs;
+    if (Array.isArray(destinationIDsInput)) {
+        // Map through the array and ensure each ID is a number
+        destinationIDs = destinationIDsInput.map(id => parseInt(id, 10)).filter(id => !isNaN(id));
+    } else {
+        console.error("Error: destinationIDsInput is not an array:", destinationIDsInput);
+        return alert("Failed to convert destination names to IDs.");
+    }
+
+    // Input validation
+    if (!listName) {
+        return alert("Please Input a valid name");
+    }
+
+    try {
+        // Sending the POST request to create or update the list
         const response = await fetch('/api/list', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/JSON'
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify( {listName, destinationIDs})
-        })
+            body: JSON.stringify({ listName, destinationIDs })
+        });
 
         const result = await response.json();
-        
-        if(result.ok)
-            return console.log(result.message);
-        else{
-            console.log(result.error || "failed to create or update list")
+
+        if (response.ok) {
+            console.log(result.message);
+        } else {
+            console.log(result.error || "Failed to create or update list");
         }
 
-
-    }catch(error){
+    } catch (error) {
         console.error("Error:", error);
         alert("An error occurred. Please try again.");
     }
 }
+
 
 // function to get faviorate lists
 async function retrieveFavoriteList(){

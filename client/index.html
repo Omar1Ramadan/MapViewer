@@ -13,6 +13,7 @@
     <script defer src="lab3.js"></script>
     <link rel="stylesheet" href="style.css"/>
     <link rel="icon" href="img/europe_17489667.gif">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
   </head>
   <body>
     <h1>European Travel Destinations</h1>
@@ -66,11 +67,6 @@
       <input type="text" id="retrieve-list-name" placeholder="Enter list name">
       <button onclick="retrieveFavoriteList()">Retrieve List</button>
   </div>
-
-  <div>
-    <button onclick="retrieveAllFavoriteList()"></button>
-  </div>
-
   <label for="favorite-sort-by">Sort by:</label>
   <select id="favorite-sort-by" onchange="updateFavoriteSortOrder()">
       <option value="name">Name</option>
