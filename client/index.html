@@ -62,7 +62,14 @@
       <input type="text" id="retrieve-list-name" placeholder="Enter list name">
       <button onclick="retrieveFavoriteList()">Retrieve List</button>
   </div>
-  
+
+  <label for="favorite-sort-by">Sort by:</label>
+  <select id="favorite-sort-by" onchange="updateFavoriteSortOrder()">
+      <option value="name">Name</option>
+      <option value="region">Region</option>
+      <option value="country">Country</option>
+  </select>
+
   <h3>Favorite List Details</h3>
   <div class="results" id="favorite-results"></div>
 </section>
