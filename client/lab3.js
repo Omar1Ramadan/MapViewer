@@ -18,13 +18,21 @@ async function searchDestinations() {
     const query = document.getElementById('search-query').value;
     const resultsPerPageInput = parseInt(document.getElementById("results-per-page").value);
     resultsPerPage = resultsPerPageInput || 5;
+    currentPage = 1;
 
     // creating the fetch request to backend
-    const response = await fetch(`/api/destinations/search?field=${field}&pattern=${query}&n=${limit}`);
+    const response = await fetch(`/api/destinations/search?field=${field}&pattern=${query}&n=${resultsPerPageInput}`);
     const data = await response.json();
     searchResults = data
     displayResults()
    
+}
+
+// Function to update results per page and refresh display
+function updateResultsPerPage() {
+    resultsPerPage = parseInt(document.getElementById("results-per-page").value) || 5;
+    currentPage = 1; // Reset to first page
+    displayResults();
 }
 
 // Function to display results and map
@@ -81,6 +89,10 @@ function displayResults() {
          .bindPopup(`<b>${destination.Destination}</b><br>${destination.Region}, ${destination.Country}`);
             markersLayer.addLayer(marker);
 
+            // Update pagination controls visibility
+        // document.getElementById("previous-btn").disabled = currentPage === 1;
+        // document.getElementById("next-btn").disabled = end >= searchResults.length;
+
     });
 }
 
@@ -100,6 +112,7 @@ function updateResultsPerPage() {
 function nextPage() {
     if ((currentPage * resultsPerPage) < searchResults.length) {
         currentPage++;
+        console.log(currentPage)
         displayResults();
     }
 }
@@ -107,6 +120,7 @@ function nextPage() {
 function previousPage() {
     if (currentPage > 1) {
         currentPage--;
+        console.log(currentPage)
         displayResults();
     }
 }

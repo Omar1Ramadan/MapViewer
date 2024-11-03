@@ -121,15 +121,15 @@ fs.watchFile(path, (curr, prev) => {
 
 // any route with the list parameters
 // Route for creating and retrieving lists
-router.route('/list')
+router.route('/destinations/list')
     .post((req, res) => {
         // Define schema with corrected usage of `messages()`
-        const schema = Joi.object({
-            listName: Joi.string().required().messages({
+        const schema = joi.object({
+            listName: joi.string().required().messages({
                 "string.empty": "listName is required",
                 "any.required": "listName is required"
             }),
-            destinationIDs: Joi.array().items(Joi.number().integer().required())
+            destinationIDs: joi.array().items(joi.number().integer().required())
         });
 
         // Validate the request body against the schema
