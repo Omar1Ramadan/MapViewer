@@ -17,6 +17,10 @@
   <body>
     <h1>European Travel Destinations</h1>
     <div id ="map" ></div>
+    
+    <div class="country-container-wrapper">
+      <div id="country" class="country-container"></div>
+  </div>
 
 
     <section id="search-section">
@@ -61,6 +65,10 @@
       <label for="retrieve-list-name">Retrieve List:</label>
       <input type="text" id="retrieve-list-name" placeholder="Enter list name">
       <button onclick="retrieveFavoriteList()">Retrieve List</button>
+  </div>
+
+  <div>
+    <button onclick="retrieveAllFavoriteList()"></button>
   </div>
 
   <label for="favorite-sort-by">Sort by:</label>

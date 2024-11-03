@@ -8,6 +8,7 @@ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
 let currentPage = 1;
 let resultsPerPage = 5;
 let searchResults = [];
+let countriesResults = [];
 let favorites = {};
 let markersLayer;
 
@@ -26,6 +27,21 @@ async function searchDestinations() {
     searchResults = data
     displayResults()
    
+}
+
+// retrieve countries 
+async function retrieveConutries(){
+
+    try{
+        const response = await fetch('/api/destinations/countries');
+        const data = await response.json();
+        countriesResults = data;
+        displayCountries();
+
+    }catch(error){
+        console.error("Error:", error);
+        alert("An error occurred. Please try again.");
+    }
 }
 
 //function to create or update lits
@@ -91,13 +107,22 @@ async function retrieveFavoriteList(){
     }
 }
 
-
-
 // Function to update results per page and refresh display
 function updateResultsPerPage() {
     resultsPerPage = parseInt(document.getElementById("results-per-page").value) || 5;
     currentPage = 1; // Reset to first page
     displayResults();
+}
+
+function displayCountries() {
+    const countriesDiv = document.getElementById('country');
+    countriesDiv.innerHTML = ""; // Clear previous content
+
+    countriesResults.forEach((countryName) => {
+        const countryParagraph = document.createElement("p");
+        countryParagraph.textContent = countryName;
+        countriesDiv.appendChild(countryParagraph);
+    });
 }
 
 // Function to display results and map
@@ -116,36 +141,47 @@ function displayResults() {
         markersLayer = L.layerGroup().addTo(map);
 
     pageResults.forEach((destination) => {
-        // Create container for each result
-        const card = document.createElement("div");
-        card.classList.add("result-card");
 
-        // Destination Title
+        const card = document.createElement("div");
+        card.className = "destination-card";
+
+        // Title
         const title = document.createElement("h3");
         title.textContent = destination.Destination;
         card.appendChild(title);
 
-        // Other Destination Details
-        addDetail(card, "Region", destination.Region);
-        addDetail(card, "Country", destination.Country);
-        addDetail(card, "Category", destination.Category);
-        addDetail(card, "Coordinates", `${destination.Latitude}, ${destination.Longitude}`);
-        addDetail(card, "Approximate Annual Tourists", destination["Approximate Annual Tourists"]);
-        addDetail(card, "Currency", destination.Currency);
-        addDetail(card, "Majority Religion", destination["Majority Religion"]);
-        addDetail(card, "Famous Foods", destination["Famous Foods"]);
-        addDetail(card, "Language", destination.Language);
-        addDetail(card, "Best Time to Visit", destination["Best Time to Visit"]);
-        addDetail(card, "Cost of Living", destination["Cost of Living"]);
-        addDetail(card, "Safety", destination.Safety);
-        addDetail(card, "Cultural Significance", destination["Cultural Significance"]);
-        addDetail(card, "Description", destination.Description);
+        // Destination details
+        const fields = [
+            { label: "Region", value: destination.Region },
+            { label: "Country", value: destination.Country },
+            { label: "Category", value: destination.Category },
+            { label: "Coordinates", value: `${destination.Latitude}, ${destination.Longitude}` },
+            { label: "Approximate Annual Tourists", value: destination["Approximate Annual Tourists"]},
+            { label: "Currency", value: destination.Currency },
+            { label: "Majority Religion", value: destination["Majority Religion"] },
+            { label: "Famous Foods", value: destination["Famous Foods"]},
+            { label: "Language", value: destination.Language },
+            { label: "Best Time to Visit", value: destination["Best Time to Visit"] },
+            { label: "Cost of Living", value: destination["Cost of Living"]},
+            { label: "Safety", value: destination.Safety },
+            { label: "Cultural Significance", value: destination["Cultural Significance"] },
+            { label: "Description", value: destination.Description },
+        ];
 
-        // Button to add to favorites
-        const addButton = document.createElement("button");
-        addButton.textContent = "Add to Favorites";
-        addButton.addEventListener("click", () => addToFavorites(destination.destinationID));
-        card.appendChild(addButton);
+        fields.forEach(field => {
+            const para = document.createElement("p");
+
+            // Label (strong element)
+            const label = document.createElement("strong");
+            label.textContent = `${field.label}: `;
+            para.appendChild(label);
+
+            // Value (text node)
+            const value = document.createTextNode(field.value);
+            para.appendChild(value);
+
+            card.appendChild(para);
+        });
 
         resultsDiv.appendChild(card);
 
@@ -153,7 +189,6 @@ function displayResults() {
          const marker = L.marker([destination.Latitude, destination.Longitude])
          .bindPopup(`<b>${destination.Destination}</b><br>${destination.Region}, ${destination.Country}`);
             markersLayer.addLayer(marker);
-
     });
 }
 
@@ -230,14 +265,6 @@ function updateFavoriteSortOrder() {
     }
 }
 
-
-// Helper function to add a destination detail
-function addDetail(parent, label, value) {
-    const detail = document.createElement("p");
-    detail.textContent = `${label}: ${value}`;
-    parent.appendChild(detail);
-}
-
 function updateResultsPerPage() {
     resultsPerPage = parseInt(document.getElementById("results-per-page").value);
     currentPage = 1;
@@ -259,3 +286,5 @@ function previousPage() {
         displayResults();
     }
 }
+
+document.addEventListener('DOMContentLoaded', retrieveConutries());

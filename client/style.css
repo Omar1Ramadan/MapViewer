@@ -4,3 +4,71 @@
     width: 100%; 
     margin-top: 20px; 
 }
+
+
+
+
+.country-container-wrapper {
+    width: 100%;
+    overflow-x: auto;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+}
+
+.country-container {
+    display: inline-flex;
+    gap: 20px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    overflow-x: scroll; /* Enforces horizontal scrolling */
+    white-space: nowrap;
+    width: 100%; /* Takes the full width of the viewport */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    scrollbar-width: thin; /* For Firefox */
+}
+
+.country-container::-webkit-scrollbar {
+    height: 8px; /* For Chrome, Safari, and Opera */
+}
+
+.country-container::-webkit-scrollbar-thumb {
+    background-color: #888; /* Custom scrollbar color */
+    border-radius: 4px;
+}
+
+.country-container p {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* Keyframe for scrolling effect */
+@keyframes scroll {
+    0% {
+        transform: translateX(100%); /* Start from right */
+    }
+    100% {
+        transform: translateX(-100%); /* Move to left */
+    }
+}
+
+/* Apply scroll animation to the country container */
+.country-container {
+    animation: scroll 30s linear infinite; /* Adjust duration for speed */
+}
+
+/* Fade-in animation for each country name */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
