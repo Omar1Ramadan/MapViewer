@@ -121,7 +121,7 @@ fs.watchFile(path, (curr, prev) => {
 
 // any route with the list parameters
 // Route for creating and retrieving lists
-router.route('/destinations/list')
+router.route('/list')
     .post((req, res) => {
         // Define schema with corrected usage of `messages()`
         const schema = joi.object({

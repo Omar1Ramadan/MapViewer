@@ -28,6 +28,68 @@ async function searchDestinations() {
    
 }
 
+//function to create or update lits
+async function createFavoriteList(){
+    // creating constants for favorite list
+    const listName = document.getElementById('list-name').value.trim();
+    const destinationIDsInput = document.getElementById('destination-ids').value.trim();
+
+    // need to add some input validation HERE
+    if(!listName)
+        return alert("Please Input a valid name");
+
+    
+    const destinationIDs = destinationIDsInput.split(',').map( id => id.trim()).filter(id => id);
+
+    try{
+        const response = await fetch('/api/list', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/JSON'
+            },
+            body: JSON.stringify( {listName, destinationIDs})
+        })
+
+        const result = await response.json();
+        
+        if(result.ok)
+            return console.log(result.message);
+        else{
+            console.log(result.error || "failed to create or update list")
+        }
+
+
+    }catch(error){
+        console.error("Error:", error);
+        alert("An error occurred. Please try again.");
+    }
+}
+
+// function to get faviorate lists
+async function retrieveFavoriteList(){
+
+    const listName = document.getElementById('retrieve-list-name').value.trim();
+
+    if(!listName)
+        return alert("Please enter a listName");
+
+    try{
+        const response = await fetch(`/api/list/${listName}`)
+        const data = await response.json();
+
+        if(response.ok){
+            return displayFavoriteList(data)
+        }
+        else{
+            alert(data.error && "List is not Found")
+        }
+
+    }catch(error){
+        console.error("Error:", error);
+        alert("An error occurred. Please try again.");
+    }
+}
+
 // Function to update results per page and refresh display
 function updateResultsPerPage() {
     resultsPerPage = parseInt(document.getElementById("results-per-page").value) || 5;
@@ -94,6 +156,15 @@ function displayResults() {
         // document.getElementById("next-btn").disabled = end >= searchResults.length;
 
     });
+}
+
+function displayFavoriteList(data){
+    const faviorateResultsDiv = document.getElementById('favorite-results')
+    faviorateResultsDiv.innerHTML = '' // clear innerhtml
+
+    if(!data.destinations || data.destinations.length === 0){
+
+    }
 }
 
 // Helper function to add a destination detail

@@ -47,5 +47,25 @@
     </div>
 </section>
 
+
+<section id="favorites-section">
+  <h2>Manage Favorite Lists</h2>
+  <div>
+      <label for="list-name">List Name:</label>
+      <input type="text" id="list-name" placeholder="Enter list name">
+      <label for="destination-ids">Destination IDs (comma-separated):</label>
+      <input type="text" id="destination-ids" placeholder="e.g., 1,2,3">
+      <button onclick="createFavoriteList()">Create/Update List</button>
+  </div>
+  <div>
+      <label for="retrieve-list-name">Retrieve List:</label>
+      <input type="text" id="retrieve-list-name" placeholder="Enter list name">
+      <button onclick="retrieveFavoriteList()">Retrieve List</button>
+  </div>
+  
+  <h3>Favorite List Details</h3>
+  <div class="results" id="favorite-results"></div>
+</section>
+
   </body>
 </html>
