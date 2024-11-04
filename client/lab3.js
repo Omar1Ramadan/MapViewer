@@ -14,33 +14,31 @@ let markersLayer;
 
 // This object will store the destination name-to-ID mapping
 let destinationMapping = {};
-// Function to load and parse CSV
-async function loadDestinationMapping() {
+
+async function loadSpecificDestinationData() {
     try {
-        const response = await fetch('./data/europe-destinations.csv');
-        const csvText = await response.text();
+        const response = await fetch('/route');
+        const data = await response.json();
+        
+        // Assuming `data` contains objects with Destination and Country as shown in your example
+        destinationMapping = {}; // Reset mapping
 
-        Papa.parse(csvText, {
-            header: true,
-            skipEmptyLines: true,
-            complete: function(results) {
-                results.data.forEach((row, index) => {
-                    const name = row.Destination ? row.Destination.trim().toLowerCase() : null;
-
-                    if (name) {
-                        destinationMapping[name] = index; // Use index as the unique ID
-                    } else {
-                        console.error(`Error parsing row. Name is invalid for index: ${index}`);
-                    }
-                });
-                console.log("Loaded destination mapping:", destinationMapping); // Final log of the mapping
+        data.forEach((row, index) => {
+            const name = row.Destination ? row.Destination.trim().toLowerCase() : null;
+            if (name) {
+                destinationMapping[name] = index; // Use index as the unique ID or any unique identifier you need
+            } else {
+                console.error(`Error parsing row. Name is invalid for index: ${index}`);
             }
         });
+
     } catch (error) {
-        console.error("Error loading destinations:", error);
+        console.error("Error fetching specific columns:", error);
     }
 }
-
+window.onload = async = () => {
+    loadSpecificDestinationData()
+}
 
 function convertDestinationsToIDs(destinationInput) {
     const destinationNames = destinationInput.split(',').map(name => name.trim().toLowerCase());
@@ -56,10 +54,6 @@ function convertDestinationsToIDs(destinationInput) {
     return destinationIDs;
 }
 
-// Call this function once when the page loads
-window.onload = async () => {
-    await loadDestinationMapping();
-};
 
 async function searchDestinations() {
     // defining the terms
@@ -176,7 +170,7 @@ async function createFavoriteList() {
             console.log(result.message);
             alert(result.error || "Failed to create list.");
         } else {
-            console.log(result.error || "Failed to create or update list");
+            console.log(result.error || "created or updated list");
         }
 
     } catch (error) {

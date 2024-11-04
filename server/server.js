@@ -5,6 +5,8 @@ const port = 3000;
 const csvparser = require('csv-parser');
 const router = express.Router();
 const joi = require('joi');
+const Papa = require('papaparse');
+const path = require('path');
 
 //Setup serving front-end code
 app.use('/', express.static('../client'));
@@ -82,11 +84,11 @@ app.use(express.json());
 let result = [];
 const lists = {};
 
-path = './data/europe-destinations.csv'
+pathRef = './data/europe-destinations.csv'
 // Function to load and parse CSV data into the `result` array
 function loadCSVData() {
     result = []; // Clear existing data
-    fs.createReadStream(path)
+    fs.createReadStream(pathRef)
     .pipe(csvparser())
     .on('data', (row) => {
     // Normalize the headers by trimming whitespace and removing any non-printable characters
@@ -110,7 +112,7 @@ function loadCSVData() {
 loadCSVData();
 
 //Watch the CSV file for changes to automatically reload data
-fs.watchFile(path, (curr, prev) => {
+fs.watchFile(pathRef, (curr, prev) => {
     if (curr.mtime !== prev.mtime) {
         console.log("CSV file changed. Reloading data...");
         loadCSVData();
@@ -313,6 +315,36 @@ router.get('/destinations/:id', (req, res) => {
     } else {
         res.status(404).send(`Destination not found ${validate.error}`);
     }
+});
+
+app.get('/route', (req, res) => {
+  const columnsToSend = ['Destination', 'Country']; // Replace with the columns you need
+
+  fs.readFile(path.join(__dirname, 'data/europe-destinations.csv'), 'utf8', (err, data) => {
+      if (err) {
+          console.error('Error reading CSV file:', err);
+          return res.status(500).json({ error: 'Internal server error' });
+      }
+
+      Papa.parse(data, {
+          header: true,
+          skipEmptyLines: true,
+          complete: (results) => {
+              const filteredData = results.data.map(row => {
+                  const filteredRow = {};
+                  columnsToSend.forEach(column => {
+                      filteredRow[column] = row[column];
+                  });
+                  return filteredRow;
+              });
+              res.json(filteredData);
+          },
+          error: (error) => {
+              console.error('Error parsing CSV:', error);
+              res.status(500).json({ error: 'Error parsing CSV data' });
+          }
+      });
+  });
 });
 
 //Define a router for the API endpoints
