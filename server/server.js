@@ -15,6 +15,66 @@ app.use((req, res, next) => {
     next();
 });
 
+const Joi = require('joi');
+
+// Define list validation schema
+const listSchema = Joi.object({
+    listName: Joi.string()
+        .pattern(/^[\p{L}\p{N}\s-]+$/u)
+        .required()
+        .messages({
+            "string.pattern.base": "Only letters, numbers, spaces, and dashes are allowed.",
+            "string.empty": "This field cannot be empty."
+        }),
+    destinationIDs: Joi.array()
+        .items(Joi.number().integer())
+        .required()
+        .messages({
+            "array.base": "Destination IDs must be a list of numbers."
+        })
+});
+
+// searchSchema
+const searchSchema = Joi.object({
+  field: Joi.string()
+      .valid('Destination', 'Region', 'Country') // Only allow these specific values
+      .required()
+      .messages({
+          "any.only": "Field must be one of 'Destination', 'Region', or 'Country'.",
+          "any.required": "Field is required."
+      }),
+  pattern: Joi.string()
+      .pattern(/^[\p{L}\p{N}\s-]+$/u) // Allow letters, numbers, spaces, and dashes
+      .required()
+      .messages({
+          "string.pattern.base": "Pattern can only contain letters, numbers, spaces, and dashes.",
+          "string.empty": "Pattern cannot be empty."
+      }),
+  n: Joi.number()
+      .integer()
+      .positive()
+      .max(50) // Maximum number of results per page (for example)
+      .default(5)
+      .messages({
+          "number.base": "n must be a positive integer.",
+          "number.max": "n cannot exceed 50."
+      })
+});
+// Define the validation schema
+const retrieveListSchema = Joi.object({
+  listName: Joi.string()
+      .pattern(/^[\p{L}\p{N}\s-]+$/u) // Allows letters (from all languages), numbers, spaces, and hyphens
+      .min(1)
+      .max(50) // Limit to a reasonable length
+      .required()
+      .messages({
+          "string.pattern.base": "List name can only contain letters, numbers, spaces, and hyphens.",
+          "string.empty": "List name cannot be empty.",
+          "any.required": "List name is required."
+      })
+});
+
+
 // Add JSON parsing middleware
 app.use(express.json());
 
@@ -123,17 +183,9 @@ fs.watchFile(path, (curr, prev) => {
 // Route for creating and retrieving lists
 router.route('/list')
     .post((req, res) => {
-        // Define schema with corrected usage of `messages()`
-        const schema = joi.object({
-            listName: joi.string().required().messages({
-                "string.empty": "listName is required",
-                "any.required": "listName is required"
-            }),
-            destinationIDs: joi.array().items(joi.number().integer().required())
-        });
-
+        
         // Validate the request body against the schema
-        const { error, value } = schema.validate(req.body);
+        const { error, value } = listSchema.validate(req.body);
 
         if (error) {
             // Send a 400 Bad Request if validation fails
@@ -162,12 +214,17 @@ router.route('/list')
 router.route('/list/:listName') 
     // Get the listname params
     .get((req, res) => {
-        const { listName } = req.params;
+        const { listName } = retrieveListSchema.validate(req.params)
+
+        if(listName){
+          return res.status(400).json({ error: error.details[0].message });
+        }
 
         // Check if the list exists
         if (!lists[listName]) {
             return res.status(404).send({ error: `List '${listName}' not found` });
         }
+
 
         // Return the list
         res.send({ listName, destinations: lists[listName] });
@@ -189,16 +246,9 @@ router.get('/destinations/search', (req, res) => {
     const { field, pattern, n } = req.query; // Extract query parameters
     const limit = n ? parseInt(n, 10) : null; // Convert n to an integer or default to null
 
-    //Define a schema to validate the query parameters
-    let schema = joi.object({
-        field: joi.string().required(),
-        pattern: joi.string().required(),
-        n: joi.number().integer().min(1).optional()
-    })
-
     // Validating the schema
-    const validation = schema.validate({ field, pattern, n : limit})
-    if (validation.errror){
+    const validation = searchSchema.validate({ field, pattern, n : limit})
+    if (validation.error){
         return res.status(400).send({ error: validation.error.details[0].message })
     }
     

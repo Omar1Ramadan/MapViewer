@@ -61,21 +61,60 @@ window.onload = async () => {
     await loadDestinationMapping();
 };
 
-//The search function
 async function searchDestinations() {
     // defining the terms
     const field = document.getElementById('search-field').value;
-    const query = document.getElementById('search-query').value;
+    const query = document.getElementById('search-query').value.trim();
     const resultsPerPageInput = parseInt(document.getElementById("results-per-page").value);
-    resultsPerPage = resultsPerPageInput || 5;
+    const resultsPerPage = resultsPerPageInput || 5; // Default to 5 if no input
     currentPage = 1;
 
-    // creating the fetch request to backend
-    const response = await fetch(`/api/destinations/search?field=${field}&pattern=${query}&n=${resultsPerPageInput}`);
-    const data = await response.json();
-    searchResults = data
-    displayResults()
-   
+    try {
+        // creating the fetch request to backend
+        const response = await fetch(`/api/destinations/search?field=${encodeURIComponent(field)}&pattern=${encodeURIComponent(query)}&n=${resultsPerPage}`);
+        
+        // Check if the response status is not OK (e.g., 400 or 500)
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "An error occurred while searching. Please try again.");
+        }
+
+        // If response is okay, parse and handle the data
+        const data = await response.json();
+        searchResults = data;
+        displayResults();
+    } catch (error) {
+        // Handle errors, including validation errors
+        alert(`Error: ${error.message}`);
+    }
+}
+
+async function deleteFavoriteList(listName) {
+    if (!listName) {
+        return alert("Please provide a valid list name to delete.");
+    }
+
+    try {
+        const response = await fetch(`/api/list/${encodeURIComponent(listName)}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            console.log(result.message); // Display success message or refresh UI as needed
+            alert(`List "${listName}" has been successfully deleted.`);
+        } else {
+            console.error(result.error || "Failed to delete the list.");
+            alert(result.error || `Error: List "${listName}" does not exist.`);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("An error occurred while trying to delete the list. Please try again.");
+    }
 }
 
 // retrieve countries 
@@ -133,8 +172,9 @@ async function createFavoriteList() {
 
         const result = await response.json();
 
-        if (response.ok) {
+        if (!response.ok) {
             console.log(result.message);
+            alert(result.error || "Failed to create list.");
         } else {
             console.log(result.error || "Failed to create or update list");
         }
