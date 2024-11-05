@@ -22,4 +22,3 @@ MapViewer is a web application designed to provide users with detailed informati
 
    ```bash
    git clone https://github.com/your-username/MapViewer.git
-![MapViewer Screenshot](client/img/sc.png)
